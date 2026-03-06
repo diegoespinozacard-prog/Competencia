@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Análisis Competitivo · IA 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --border: #1e1e2e;
+    --text: #e8e8f0;
+    --muted: #6b6b80;
+    --accent: #f0c040;
+    --gpt: #10b981;
+    --claude: #a78bfa;
+    --gemini: #3b82f6;
+    --grok: #ef4444;
+    --copilot: #0ea5e9;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grid texture */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: 
+      linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 48px 24px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* HEADER */
+  header {
+    margin-bottom: 56px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 40px;
+  }
+
+  .tag {
+    display: inline-block;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    padding: 4px 12px;
+    margin-bottom: 20px;
+    font-weight: 500;
+  }
+
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    color: #fff;
+    margin-bottom: 16px;
+  }
+
+  h1 span { color: var(--accent); }
+
+  .subtitle {
+    color: var(--muted);
+    font-size: 13px;
+    letter-spacing: 0.05em;
+  }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    gap: 2px;
+    margin-bottom: 40px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 4px;
+    width: fit-content;
+    flex-wrap: wrap;
+  }
+
+  .tab {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 10px 20px;
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 500;
+  }
+
+  .tab.active {
+    background: var(--accent);
+    color: #000;
+  }
+
+  .tab:hover:not(.active) { color: var(--text); }
+
+  /* PANELS */
+  .panel { display: none; }
+  .panel.active { display: block; animation: fadeIn 0.3s ease; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* COMPETITOR CARDS */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+    margin-bottom: 48px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 28px;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.2s, border-color 0.2s;
+  }
+
+  .card:hover { transform: translateY(-2px); }
+  .card[data-brand="gpt"]:hover { border-color: var(--gpt); }
+  .card[data-brand="claude"]:hover { border-color: var(--claude); }
+  .card[data-brand="gemini"]:hover { border-color: var(--gemini); }
+  .card[data-brand="grok"]:hover { border-color: var(--grok); }
+  .card[data-brand="copilot"]:hover { border-color: var(--copilot); }
+
+  .card-accent {
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px;
+    height: 100%;
+  }
+
+  .card[data-brand="gpt"] .card-accent { background: var(--gpt); }
+  .card[data-brand="claude"] .card-accent { background: var(--claude); }
+  .card[data-brand="gemini"] .card-accent { background: var(--gemini); }
+  .card[data-brand="grok"] .card-accent { background: var(--grok); }
+  .card[data-brand="copilot"] .card-accent { background: var(--copilot); }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+  }
+
+  .card-brand {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  .card-company {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  .price-badge {
+    text-align: right;
+  }
+
+  .price-main {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  .price-label {
+    font-size: 10px;
+    color: var(--muted);
+    display: block;
+    letter-spacing: 0.05em;
+  }
+
+  .card-desc {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.6;
+    margin-bottom: 20px;
+  }
+
+  .strengths {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .strength-tag {
+    font-size: 10px;
+    padding: 3px 10px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .card[data-brand="gpt"] .strength-tag { border-color: rgba(16,185,129,0.3); color: var(--gpt); }
+  .card[data-brand="claude"] .strength-tag { border-color: rgba(167,139,250,0.3); color: var(--claude); }
+  .card[data-brand="gemini"] .strength-tag { border-color: rgba(59,130,246,0.3); color: var(--gemini); }
+  .card[data-brand="grok"] .strength-tag { border-color: rgba(239,68,68,0.3); color: var(--grok); }
+  .card[data-brand="copilot"] .strength-tag { border-color: rgba(14,165,233,0.3); color: var(--copilot); }
+
+  /* PRICING TABLE */
+  .price-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+
+  .price-table th {
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: var(--muted);
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .price-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    vertical-align: top;
+  }
+
+  .price-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+  .price-table .brand-cell {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+  }
+
+  .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 8px;
+    vertical-align: middle;
+  }
+
+  .dot-gpt { background: var(--gpt); }
+  .dot-claude { background: var(--claude); }
+  .dot-gemini { background: var(--gemini); }
+  .dot-grok { background: var(--grok); }
+  .dot-copilot { background: var(--copilot); }
+
+  .price-num {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--accent);
+  }
+
+  /* RADAR / SCORE SECTION */
+  .scores-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    margin-bottom: 40px;
+  }
+
+  @media (max-width: 768px) {
+    .scores-grid { grid-template-columns: 1fr 1fr; }
+    .cards-grid { grid-template-columns: 1fr; }
+  }
+
+  .score-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 20px 16px;
+    text-align: center;
+  }
+
+  .score-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 16px;
+  }
+
+  .score-bars { display: flex; flex-direction: column; gap: 8px; }
+
+  .score-row { display: flex; align-items: center; gap: 8px; }
+
+  .score-label { font-size: 9px; letter-spacing: 0.05em; color: var(--muted); width: 50px; text-align: right; }
+
+  .score-bar-wrap {
+    flex: 1;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .score-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.8s ease;
+  }
+
+  .score-val { font-size: 9px; color: var(--muted); width: 24px; }
+
+  /* INSIGHTS */
+  .insights-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  @media (max-width: 768px) { .insights-grid { grid-template-columns: 1fr; } }
+
+  .insight-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 24px;
+  }
+
+  .insight-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    margin-bottom: 16px;
+  }
+
+  .insight-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+
+  .insight-list li {
+    font-size: 12px;
+    color: var(--text);
+    line-height: 1.5;
+    padding-left: 16px;
+    position: relative;
+  }
+
+  .insight-list li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+    font-size: 11px;
+  }
+
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 20px;
+  }
+
+  /* Compare toggle rows */
+  .compare-row {
+    display: grid;
+    grid-template-columns: 160px repeat(5, 1fr);
+    border-bottom: 1px solid var(--border);
+    font-size: 11px;
+  }
+
+  .compare-row.header {
+    background: var(--surface);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .compare-cell {
+    padding: 12px 14px;
+    border-right: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+  }
+
+  .compare-row:hover:not(.header) { background: rgba(255,255,255,0.01); }
+
+  .compare-feature { color: var(--muted); font-size: 11px; }
+
+  .check { color: #10b981; font-size: 14px; }
+  .cross { color: #ef4444; font-size: 14px; }
+  .partial { color: var(--accent); font-size: 11px; }
+
+  .scrollable { overflow-x: auto; }
+
+  .warning-badge {
+    display: inline-block;
+    font-size: 9px;
+    padding: 2px 7px;
+    background: rgba(239,68,68,0.15);
+    border: 1px solid rgba(239,68,68,0.3);
+    color: #ef4444;
+    letter-spacing: 0.05em;
+    margin-top: 6px;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="tag">Análisis Competitivo · 2026</div>
+    <h1>El Mercado de los<br><span>Asistentes IA</span></h1>
+    <p class="subtitle">ChatGPT · Claude · Gemini · Grok · Copilot — Actualizado Marzo 2026</p>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" onclick="showPanel('overview')">Vista General</button>
+    <button class="tab" onclick="showPanel('pricing')">Precios</button>
+    <button class="tab" onclick="showPanel('features')">Funciones</button>
+    <button class="tab" onclick="showPanel('scores')">Puntuaciones</button>
+    <button class="tab" onclick="showPanel('insights')">Insights</button>
+  </div>
+
+  <!-- OVERVIEW -->
+  <div id="panel-overview" class="panel active">
+    <p class="section-title">Competidores directos</p>
+    <div class="cards-grid">
+
+      <div class="card" data-brand="gpt">
+        <div class="card-accent"></div>
+        <div class="card-header">
+          <div>
+            <div class="card-brand">ChatGPT</div>
+            <div class="card-company">OpenAI</div>
+          </div>
+          <div class="price-badge">
+            <div class="price-main">$20</div>
+            <span class="price-label">Plus /mes</span>
+          </div>
+        </div>
+        <p class="card-desc">Líder de mercado con la mayor base de usuarios (700M+ semanales). Modelo GPT-5.2 con variantes Instant, Thinking y Pro. Planes desde $8 (Go) hasta $200 (Pro). Ecosistema más maduro con 60+ integraciones.</p>
+        <div class="strengths">
+          <span class="strength-tag">Ecosistema</span>
+          <span class="strength-tag">Imagen</span>
+          <span class="strength-tag">Plugins</span>
+          <span class="strength-tag">Voz</span>
+          <span class="strength-tag">Video (Sora)</span>
+        </div>
+      </div>
+
+      <div class="card" data-brand="claude">
+        <div class="card-accent"></div>
+        <div class="card-header">
+          <div>
+            <div class="card-brand">Claude</div>
+            <div class="card-company">Anthropic</div>
+          </div>
+          <div class="price-badge">
+            <div class="price-main">$20</div>
+            <span class="price-label">Pro /mes</span>
+          </div>
+        </div>
+        <p class="card-desc">Reconocido por escritura, código y seguridad. Opus 4.6 con ventana de 1M tokens. Planes hasta $200/mes (Max 20x). Fuerte en benchmarks de código (SWE-bench 77.2%). Énfasis en IA constitucional y ética.</p>
+        <div class="strengths">
+          <span class="strength-tag">Escritura</span>
+          <span class="strength-tag">Código</span>
+          <span class="strength-tag">Seguridad</span>
+          <span class="strength-tag">Contexto largo</span>
+          <span class="strength-tag">Ética IA</span>
+        </div>
+      </div>
+
+      <div class="card" data-brand="gemini">
+        <div class="card-accent"></div>
+        <div class="card-header">
+          <div>
+            <div class="card-brand">Gemini</div>
+            <div class="card-company">Google</div>
+          </div>
+          <div class="price-badge">
+            <div class="price-main">$19.99</div>
+            <span class="price-label">AI Pro /mes</span>
+          </div>
+        </div>
+        <p class="card-desc">Integración profunda con Google Workspace (Gmail, Docs, Sheets). Modelo Gemini 3 Pro con capacidades multimodales. Plan Ultra a $124.99/3 meses. Ventana de 1M tokens. Datos en tiempo real desde Google Search.</p>
+        <div class="strengths">
+          <span class="strength-tag">Google Workspace</span>
+          <span class="strength-tag">Búsqueda</span>
+          <span class="strength-tag">Multimodal</span>
+          <span class="strength-tag">Veo (video)</span>
+          <span class="strength-tag">Gratis generoso</span>
+        </div>
+      </div>
+
+      <div class="card" data-brand="grok">
+        <div class="card-accent"></div>
+        <div class="card-header">
+          <div>
+            <div class="card-brand">Grok</div>
+            <div class="card-company">xAI (Elon Musk)</div>
+          </div>
+          <div class="price-badge">
+            <div class="price-main">$30</div>
+            <span class="price-label">SuperGrok /mes</span>
+          </div>
+        </div>
+        <p class="card-desc">Único con acceso en tiempo real a X (Twitter). Ventana de contexto de 2M tokens. API más barata del mercado ($0.20/M tokens). Controversia en Jan 2026 por imágenes. Grok Business lanzado para empresas.</p>
+        <div class="strengths">
+          <span class="strength-tag">Tiempo real X</span>
+          <span class="strength-tag">API barata</span>
+          <span class="strength-tag">2M contexto</span>
+          <span class="strength-tag">Sin censura</span>
+        </div>
+        <div class="warning-badge">⚠ Investigación en 7 países (imágenes)</div>
+      </div>
+
+      <div class="card" data-brand="copilot">
+        <div class="card-accent"></div>
+        <div class="card-header">
+          <div>
+            <div class="card-brand">Copilot</div>
+            <div class="card-company">Microsoft</div>
+          </div>
+          <div class="price-badge">
+            <div class="price-main">$30</div>
+            <span class="price-label">M365 /usuario</span>
+          </div>
+        </div>
+        <p class="card-desc">Profundamente integrado en Microsoft 365 (Word, Excel, PowerPoint, Teams). 90%+ Fortune 500 lo usa. Copilot Chat gratuito incluido con suscripciones M365. Cambio de precios en julio 2026. Potenciado por GPT de OpenAI.</p>
+        <div class="strengths">
+          <span class="strength-tag">Office 365</span>
+          <span class="strength-tag">Enterprise</span>
+          <span class="strength-tag">Teams</span>
+          <span class="strength-tag">Seguridad</span>
+          <span class="strength-tag">Compliance</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- PRICING -->
+  <div id="panel-pricing" class="panel">
+    <p class="section-title">Comparación de planes y precios</p>
+    <div class="scrollable">
+      <table class="price-table">
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Plan Gratis</th>
+            <th>Plan Base</th>
+            <th>Plan Pro</th>
+            <th>Máx. Individual</th>
+            <th>Empresa/Equipo</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="brand-cell"><span class="dot dot-gpt"></span>ChatGPT</td>
+            <td>✓ GPT-5.2 (10 msgs/5h)</td>
+            <td><span class="price-num">$8</span>/mes<br><small style="color:var(--muted)">Go — básico</small></td>
+            <td><span class="price-num">$20</span>/mes<br><small style="color:var(--muted)">Plus</small></td>
+            <td><span class="price-num">$200</span>/mes<br><small style="color:var(--muted)">Pro — ilimitado</small></td>
+            <td><span class="price-num">$30</span>/usuario<br><small style="color:var(--muted)">Business</small></td>
+          </tr>
+          <tr>
+            <td class="brand-cell"><span class="dot dot-claude"></span>Claude</td>
+            <td>✓ Límite bajo</td>
+            <td>—</td>
+            <td><span class="price-num">$20</span>/mes<br><small style="color:var(--muted)">Pro (5x uso)</small></td>
+            <td><span class="price-num">$100–200</span>/mes<br><small style="color:var(--muted)">Max 5x / 20x</small></td>
+            <td><span class="price-num">$25</span>/asiento<br><small style="color:var(--muted)">Team (anual)</small></td>
+          </tr>
+          <tr>
+            <td class="brand-cell"><span class="dot dot-gemini"></span>Gemini</td>
+            <td>✓ Gemini 3 Flash + 100 créditos IA</td>
+            <td><span class="price-num">$7.99</span>/mes<br><small style="color:var(--muted)">AI Plus</small></td>
+            <td><span class="price-num">$19.99</span>/mes<br><small style="color:var(--muted)">AI Pro</small></td>
+            <td><span class="price-num">$41.66</span>/mes<br><small style="color:var(--muted)">Ultra (~$125/3m)</small></td>
+            <td><span class="price-num">$20–30</span>/usuario<br><small style="color:var(--muted)">Workspace</small></td>
+          </tr>
+          <tr>
+            <td class="brand-cell"><span class="dot dot-grok"></span>Grok</td>
+            <td>✓ Acceso limitado vía X</td>
+            <td><span class="price-num">$16</span>/mes<br><small style="color:var(--muted)">X Premium+</small></td>
+            <td><span class="price-num">$30</span>/mes<br><small style="color:var(--muted)">SuperGrok</small></td>
+            <td><span class="price-num">$300</span>/mes<br><small style="color:var(--muted)">Heavy</small></td>
+            <td><span class="price-num">$30</span>/usuario<br><small style="color:var(--muted)">Grok Business</small></td>
+          </tr>
+          <tr>
+            <td class="brand-cell"><span class="dot dot-copilot"></span>Copilot</td>
+            <td>✓ Copilot Chat (con M365)</td>
+            <td><span class="price-num">$6.99</span>/mes<br><small style="color:var(--muted)">M365 Personal</small></td>
+            <td><span class="price-num">$9.99</span>/mes<br><small style="color:var(--muted)">M365 Family</small></td>
+            <td><span class="price-num">$199.99</span>/año<br><small style="color:var(--muted)">M365 Premium</small></td>
+            <td><span class="price-num">$30</span>/usuario<br><small style="color:var(--muted)">M365 Copilot</small></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <br>
+    <p class="section-title">API — Precio por millón de tokens (entrada / salida)</p>
+    <div class="scrollable">
+      <table class="price-table">
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Modelo Rápido</th>
+            <th>Modelo Balanceado</th>
+            <th>Modelo Flagship</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="brand-cell"><span class="dot dot-gpt"></span>ChatGPT</td>
+            <td>GPT-5.2 Instant<br><span class="price-num">$1.75</span> / <span class="price-num">$14</span></td>
+            <td>GPT-5.1<br><span class="price-num">~$2.50</span> / <span class="price-num">$15</span></td>
+            <td>GPT-5.2 Pro<br><span class="price-num">~$5</span> / <span class="price-num">$20+</span></td>
+          </tr>
+          <tr>
+            <td class="brand-cell"><span class="dot dot-claude"></span>Claude</td>
+            <td>Haiku 4.5<br><span class="price-num">$1</span> / <span class="price-num">$5</span></td>
+            <td>Sonnet 4.6<br><span class="price-num">$3</span> / <span class="price-num">$15</span></td>
+            <td>Opus 4.6<br><span class="price-num">$5</span> / <span class="price-num">$25</span></td>
+          </tr>
+          <tr>
+            <td class="brand-cell"><span class="dot dot-gemini"></span>Gemini</td>
+            <td>3 Flash<br><span class="price-num">$0.50</span> / <span class="price-num">$3</span></td>
+            <td>2.5 Pro<br><span class="price-num">$1.25</span> / <span class="price-num">$10</span></td>
+            <td>3.1 Pro<br><span class="price-num">$2</span> / <span class="price-num">$12</span></td>
+          </tr>
+          <tr>
+            <td class="brand-cell"><span class="dot dot-grok"></span>Grok</td>
+            <td>Grok 4.1 Fast<br><span class="price-num">$0.20</span> / <span class="price-num">$0.50</span></td>
+            <td>Grok 4.1<br><span class="price-num">$0.80</span> / <span class="price-num">$2</span></td>
+            <td>Grok 4 Heavy<br><span class="price-num">$3</span> / <span class="price-num">$8</span></td>
+          </tr>
+          <tr>
+            <td class="brand-cell"><span class="dot dot-copilot"></span>Copilot</td>
+            <td colspan="3" style="color:var(--muted)">Depende del modelo subyacente (OpenAI GPT-5). Precio por add-on en M365.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- FEATURES -->
+  <div id="panel-features" class="panel">
+    <p class="section-title">Comparación de capacidades</p>
+    <div class="scrollable">
+      <div style="min-width: 700px;">
+        <div class="compare-row header">
+          <div class="compare-cell compare-feature">Característica</div>
+          <div class="compare-cell" style="color:var(--gpt)">ChatGPT</div>
+          <div class="compare-cell" style="color:var(--claude)">Claude</div>
+          <div class="compare-cell" style="color:var(--gemini)">Gemini</div>
+          <div class="compare-cell" style="color:var(--grok)">Grok</div>
+          <div class="compare-cell" style="color:var(--copilot)">Copilot</div>
+        </div>
+        <div class="compare-row">
+          <div class="compare-cell compare-feature">Búsqueda web en tiempo real</div>
+          <div class="compare-cell"><span class="check">✓</span></div>
+          <div class="compare-cell"><span class="check">✓</span></div>
+          <div class="compare-cell"><span class="check">✓</span> nativo</div>
+          <div class="compare-cell"><span class="check">✓</span> X data</div>
+          <div class="compare-cell"><span class="check">✓</span> Bing</div>
+        </div>
+        <div class="compare-row">
+          <div class="compare-cell compare-feature">Generación de imágenes</div>
+          <div class="compare-cell"><span class="check">✓</span> DALL-E 4</div>
+          <div class="compare-cell"><span class="cross">✗</span></div>
+          <div class="compare-cell"><span class="check">✓</span> Imagen</div>
+          <div class="compare-cell"><span class="partial">⚠ Limitado</span></div>
+          <div class="compare-cell"><span class="check">✓</span> Designer</div>
+        </div>
+        <div class="compare-row">
+          <div class="compare-cell compare-feature">Generación de video</div>
+          <div class="compare-cell"><span class="check">✓</span> Sora 2 (Pro)</div>
+          <div class="compare-cell"><span class="cross">✗</span></div>
+          <div class="compare-cell"><span class="check">✓</span> Veo 3.1</div>
+          <div class="compare-cell"><span class="cross">✗</span></div>
+          <div class="compare-cell"><span class="partial">◐</span> Clipchamp</div>
+        </div>
+        <div class="compare-row">
+          <div class="compare-cell compare-feature">Ventana de contexto</div>
+          <div class="compare-cell">196K tokens</div>
+          <div class="compare-cell">1M tokens</div>
+          <div class="compare-cell">1M tokens</div>
+          <div class="compare-cell">2M tokens</div>
+          <div class="compare-cell">128K tokens</div>
+        </div>
+        <div class="compare-row">
+          <div class="compare-cell compare-feature">Agente de código</div>
+          <div class="compare-cell"><span class="check">✓</span> Codex</div>
+          <div class="compare-cell"><span class="check">✓</span> Claude Code</div>
+          <div class="compare-cell"><span class="check">✓</span> Jules</div>
+          <div class="compare-cell"><span class="partial">◐</span></div>
+          <div class="compare-cell"><span class="check">✓</span> GitHub Copilot</div>
+        </div>
+        <div class="compare-row">
+          <div class="compare-cell compare-feature">Integración Office/Workspace</div>
+          <div class="compare-cell"><span class="partial">◐</span> connectors</div>
+          <div class="compare-cell"><span class="partial">◐</span> G-Workspace</div>
+          <div class="compare-cell"><span class="check">✓</span> nativo</div>
+          <div class="compare-cell"><span class="partial">◐</span> Google Drive</div>
+          <div class="compare-cell"><span class="check">✓</span> nativo</div>
+        </div>
+        <div class="compare-row">
+          <div class="compare-cell compare-feature">Memoria persistente</div>
+          <div class="compare-cell"><span class="check">✓</span></div>
+          <div class="compare-cell"><span class="check">✓</span> Max+</div>
+          <div class="compare-cell"><span class="check">✓</span></div>
+          <div class="compare-cell"><span class="partial">◐</span></div>
+          <div class="compare-cell"><span class="check">✓</span></div>
+        </div>
+        <div class="compare-row">
+          <div class="compare-cell compare-feature">Voz avanzada</div>
+          <div class="compare-cell"><span class="check">✓</span> Plus+</div>
+          <div class="compare-cell"><span class="cross">✗</span></div>
+          <div class="compare-cell"><span class="check">✓</span> Live</div>
+          <div class="compare-cell"><span class="cross">✗</span></div>
+          <div class="compare-cell"><span class="partial">◐</span></div>
+        </div>
+        <div class="compare-row">
+          <div class="compare-cell compare-feature">SOC 2 / Enterprise compliance</div>
+          <div class="compare-cell"><span class="check">✓</span> Enterprise</div>
+          <div class="compare-cell"><span class="check">✓</span> Team+</div>
+          <div class="compare-cell"><span class="check">✓</span></div>
+          <div class="compare-cell"><span class="partial">◐</span> Enterprise</div>
+          <div class="compare-cell"><span class="check">✓</span></div>
+        </div>
+        <div class="compare-row">
+          <div class="compare-cell compare-feature">Plan gratuito útil</div>
+          <div class="compare-cell"><span class="partial">◐</span> muy limitado</div>
+          <div class="compare-cell"><span class="partial">◐</span> limitado</div>
+          <div class="compare-cell"><span class="check">✓</span> generoso</div>
+          <div class="compare-cell"><span class="partial">◐</span> sólo X</div>
+          <div class="compare-cell"><span class="check">✓</span> con M365</div>
+        </div>
+        <div class="compare-row">
+          <div class="compare-cell compare-feature">Datos de redes sociales</div>
+          <div class="compare-cell"><span class="cross">✗</span></div>
+          <div class="compare-cell"><span class="cross">✗</span></div>
+          <div class="compare-cell"><span class="cross">✗</span></div>
+          <div class="compare-cell"><span class="check">✓</span> X exclusivo</div>
+          <div class="compare-cell"><span class="cross">✗</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCORES -->
+  <div id="panel-scores" class="panel">
+    <p class="section-title">Evaluación por categorías (escala 1–10)</p>
+    <div class="scores-grid">
+
+      <div class="score-card">
+        <div class="score-name">ChatGPT</div>
+        <div class="score-bars">
+          <div class="score-row"><div class="score-label">Escritura</div><div class="score-bar-wrap"><div class="score-bar-fill" style="width:82%;background:var(--gpt)"></div></div><div class="score-val">8.2</div></div>
+          <div class="score-row"><div class="score-label">Código</div><div class="score-bar-wrap"><div class="score-bar-fill" style="width:85%;background:var(--gpt)"></div></div><div class="score-val">8.5</div></div>
+          <div class="score-row"><div class="score-label">Análisis</div><div class="score-bar-wrap"><div class="score-bar-fill" style="width:88%;background:var(--gpt)"></div></div><div class="score-val">8.8</div></div>
+          <div class="score-row"><div class="score-label">Precio/val</div><div class="score-bar-wrap"><div class="score-bar-fill" style="width:78%;background:var(--gpt)"></div></div><div class="score-val">7.8</div></div>
+          <div class="score-row"><div class="score-label">Ecosistema</div><div class="score-bar-wrap"><div class="score-bar-fill" style="width:95%;background:var(--gpt)"></div></div><div class="score-val">9.5</div></div>
+          <div class="score-row"><div class="score-label">Seguridad</div><div class="score-bar-wrap"><div class="score-bar-fill" style="width:80%;background:var(--gpt)"></div></div><div class="score-val">8.0</div></div>
+        </div>
+      </div>
+
+      <div class="score-card">
+        <div class="score-name">Claude</div>
+        <div class="score-bars">
+          <div class="score-row"><div class="score-label">Escritura</div><div class="score-bar-wrap"><div class="score-bar-fill" style="width:95%;background:var(--claude)"></div></div><div class="score-val">9.5</div></div>
+          <div class="score-row"><div class="score-label">Código</div><div class="score-bar-wrap"><div class="score-bar-fill" style="width:90%;background:var(--claude)"></div></div><div class="score-val">9.0</div></div>
+          <div class="score-row"><div class="score-label">Análisis</div><div class="score-bar-wrap"><div class="score-bar-fill" style="width:92%;background:var(--claude)"></div></div><div class="score-val">9.2</div></div>
+          <div class="score-row"><div class="score-label">Precio/val</div><div class="score-bar-wrap"><div class="score-bar-fill" style="width:80%;background:var(--claude)"></div></div><div class="score-val">8.0</div></div>
+          <div class="score-row"><div class="score-label">Ecosistema</div><div class="score-bar-wrap"><div class="score-bar-fill" style="width:70%;background:var(--claude)"></div></div><div class="score-val">7.0</div></div>
+          <div class="score-row"><div class="score-label">Seguridad</div><div class="score-bar-wrap"><div class="score-bar-fill" style="width:96%;background:var(--claude)"></div></div><div class="score-val">9.6</div></div>
+        </div>
+      </div>
+
+      <div class="score-card">
+        <div class="score-name">Gemini</div>
+        <div class="score-bars">
+          <div class="score-row"><div class="score-label">Escritura</div><div class="score-bar-wrap"><div class="score-bar-fill" style="width:80%;background:var(--gemini)"></div></div><div class="score-val">8.0</div></div>
+          <div class="score-row"><div class="score-label">Código</div><div class="score-bar-wrap"><div class="score-bar-fill" style="width:82%;background:var(--gemini)"></div></div><div class="score-val">8.2</div></div>
+          <div class="score-row"><div class="score-label">Análisis</div><div class="score-bar-wrap"><div class="score-bar-fill" style="width:85%;background:var(--gemini)"></div></div><div class="score-val">8.5</div></div>
+          <div class="score-row"><div class="score-label">Precio/val</div><div class="score-bar-wrap"><div class="score-bar-fill" style="width:88%;background:var(--gemini)"></div></div><div class="score-val">8.8</div></div>
+          <div class="score-row"><div class="score-label">Ecosistema</div><div class="score-bar-wrap"><div class="score-bar-fill" style="width:90%;background:var(--gemini)"></div></div><div class="score-val">9.0</div></div>
+          <div class="score-row"><div class="score-label">Seguridad</div><div class="score-bar-wrap"><div class="score-bar-fill" style="width:82%;background:var(--gemini)"></div></div><div class="score-val">8.2</div></div>
+        </div>
+      </div>
+
+      <div class="score-card">
+        <div class="score-name">Grok</div>
+        <div class="score-bars">
+          <div class="score-row"><div class="score-label">Escritura</div><div class="score-bar-wrap"><div class="score-bar-fill" style="width:72%;background:var(--grok)"></div></div><div class="score-val">7.2</div></div>
+          <div class="score-row"><div class="score-label">Código</div><div class="score-bar-wrap"><div class="score-bar-fill" style="width:78%;background:var(--grok)"></div></div><div class="score-val">7.8</div></div>
+          <div class="score-row"><div class="score-label">Análisis</div><div class="score-bar-wrap"><div class="score-bar-fill" style="width:80%;background:var(--grok)"></div></div><div class="score-val">8.0</div></div>
+          <div class="score-row"><div class="score-label">Precio/val</div><div class="score-bar-wrap"><div class="score-bar-fill" style="width:90%;background:var(--grok)"></div></div><div class="score-val">9.0</div></div>
+          <div class="score-row"><div class="score-label">Ecosistema</div><div class="score-bar-wrap"><div class="score-bar-fill" style="width:55%;background:var(--grok)"></div></div><div class="score-val">5.5</div></div>
+          <div class="score-row"><div class="score-label">Seguridad</div><div class="score-bar-wrap"><div class="score-bar-fill" style="width:45%;background:var(--grok)"></div></div><div class="score-val">4.5</div></div>
+        </div>
+      </div>
+
+      <div class="score-card">
+        <div class="score-name">Copilot</div>
+        <div class="score-bars">
+          <div class="score-row"><div class="score-label">Escritura</div><div class="score-bar-wrap"><div class="score-bar-fill" style="width:78%;background:var(--copilot)"></div></div><div class="score-val">7.8</div></div>
+          <div class="score-row"><div class="score-label">Código</div><div class="score-bar-wrap"><div class="score-bar-fill" style="width:88%;background:var(--copilot)"></div></div><div class="score-val">8.8</div></div>
+          <div class="score-row"><div class="score-label">Análisis</div><div class="score-bar-wrap"><div class="score-bar-fill" style="width:80%;background:var(--copilot)"></div></div><div class="score-val">8.0</div></div>
+          <div class="score-row"><div class="score-label">Precio/val</div><div class="score-bar-wrap"><div class="score-bar-fill" style="width:75%;background:var(--copilot)"></div></div><div class="score-val">7.5</div></div>
+          <div class="score-row"><div class="score-label">Ecosistema</div><div class="score-bar-wrap"><div class="score-bar-fill" style="width:95%;background:var(--copilot)"></div></div><div class="score-val">9.5</div></div>
+          <div class="score-row"><div class="score-label">Seguridad</div><div class="score-bar-wrap"><div class="score-bar-fill" style="width:92%;background:var(--copilot)"></div></div><div class="score-val">9.2</div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- INSIGHTS -->
+  <div id="panel-insights" class="panel">
+    <p class="section-title">Insights estratégicos 2026</p>
+    <div class="insights-grid">
+
+      <div class="insight-box">
+        <div class="insight-title">🎯 Oportunidades de mercado</div>
+        <ul class="insight-list">
+          <li>La guerra de precios en el tier $8–20/mes crea oportunidad para nichos especializados con propuesta de valor clara.</li>
+          <li>Grok domina el acceso a datos sociales en tiempo real — sin competidor directo en ese espacio.</li>
+          <li>Copilot + M365 captura enterprise por defecto; el mercado SMB (5–50 empleados) está menos saturado.</li>
+          <li>Claude lidera en código y escritura, pero su ecosistema de integraciones es el más débil.</li>
+          <li>Gemini ofrece el mejor valor para usuarios del ecosistema Google — punto ciego para quienes usan otro stack.</li>
+        </ul>
+      </div>
+
+      <div class="insight-box">
+        <div class="insight-title">⚠️ Riesgos y debilidades</div>
+        <ul class="insight-list">
+          <li>Grok bajo escrutinio regulatorio en 7 países por problemas de seguridad en generación de imágenes (ene 2026).</li>
+          <li>Fragmentación de planes: los usuarios necesitan hasta 3 suscripciones distintas para tener funcionalidad completa ($50+/mes).</li>
+          <li>ChatGPT Go ($8) puede canibalizar su propio plan Plus ($20) si la calidad converge.</li>
+          <li>Microsoft sube precios en julio 2026 — riesgo de rotación de clientes SMB.</li>
+          <li>Todos los actores enfrentan presión de costos de cómputo crecientes con modelos más grandes.</li>
+        </ul>
+      </div>
+
+      <div class="insight-box">
+        <div class="insight-title">📈 Tendencias clave del sector</div>
+        <ul class="insight-list">
+          <li>Ventanas de contexto expandiéndose: de 128K a 1–2M tokens en un año. El procesamiento de documentos largos será commodity.</li>
+          <li>Agentes autónomos: Claude Code, Codex, Jules — la batalla se mueve hacia ejecución autónoma de tareas complejas.</li>
+          <li>IA multimodal como estándar: voz, imagen, video ya no son diferenciadores premium sino expectativas básicas.</li>
+          <li>Pricing por créditos (Gemini) vs. suscripción plana — el modelo de créditos da más control granular al usuario.</li>
+          <li>Precios API en caída: Grok a $0.20/M tokens presiona a todos a reducir costos de API.</li>
+        </ul>
+      </div>
+
+      <div class="insight-box">
+        <div class="insight-title">🏆 ¿Quién gana en cada segmento?</div>
+        <ul class="insight-list">
+          <li><strong style="color:#fff">Código / Dev:</strong> Claude (SWE-bench 77.2%) y GitHub Copilot (integración IDE).</li>
+          <li><strong style="color:#fff">Escritura creativa:</strong> Claude por su precisión narrativa y ética de contenido.</li>
+          <li><strong style="color:#fff">Enterprise M365:</strong> Copilot indiscutible — integración nativa imposible de replicar.</li>
+          <li><strong style="color:#fff">Ecosistema Google:</strong> Gemini es la elección obvia para usuarios de Workspace.</li>
+          <li><strong style="color:#fff">Mejor precio/API:</strong> Grok ($0.20/M) para proyectos de alto volumen y bajo presupuesto.</li>
+          <li><strong style="color:#fff">Todo-en-uno:</strong> ChatGPT sigue siendo el más completo para el usuario general.</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+function showPanel(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>
+</body>
+</html>
